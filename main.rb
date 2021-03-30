@@ -1,76 +1,59 @@
 require 'csv'
-# psuedocode
-# applications features - 
-    # - users - can login
-            #- can signup
-            # can logout
-    # - notes 
-        # - create note
-        # - edit notes
-        # - delete note
-
-
 quit = false
-# while quit == false
-# while quit == false
-#     input = gets.chomp
-#     if input == "quit"
-#         quit = true
-#     end
-# end
-users_array = []
+users = CSV.open("users.csv", "a+")
 user = {}
 
+def get_login_details
+    puts "What is your username?"
+    un = gets.chomp
+    puts "What is your password?"
+    pw = gets.chomp
+    return un, pw
+    # ["foo", "bar"]
+end
+
+def find_user?(username)
+    CSV.open("users.csv", "a+")  do |csv|
+        csv.each do |line|
+            if line[0] == username
+                return line
+            end
+        end
+        return false
+    end
+end
+
+def append_to_csv(username, password)
+    CSV.open("users.csv", "a") do |csv|
+        csv << [username, password]
+    end
+end
+
 until quit
-    logged_in = false
-    until logged_in
+    until user != {}
         puts "options: [login, signup]"
         input = gets.chomp
         if input == "signup"
-            puts "What is your username?"
-            username = gets.chomp
-            puts "What is your password?"
-            password = gets.chomp
-            CSV.open("users.csv", "a+")  do |csv|
-                username_is_taken = false
-                csv.each do |line|
-                    if line[0] == username
-                        puts "that is a taken username"
-                        username_is_taken = true    
-                    end
-                end
-                if username_is_taken == false
-                    csv << [username,password]
-                    logged_in = true
-                    user[:username] = username
-                    user[:password] = password
-                end
+            username, password = get_login_details()
+            username_is_taken = find_user?(username)
+            if username_is_taken == false
+                append_to_csv(username, password)
+                user[:username] = username
+                user[:password] = password
             end
         elsif input == "login"
-            successful_login = false
-            puts "What is your username"
-            username = gets.chomp
-            puts "What is your password"
-            password = gets.chomp
-            CSV.open("users.csv", "r")  do |csv|
-                csv.each do |line|
-                    if line[0] == username
-                        if line[1] == password
-                            successful_login = true
-                            logged_in = true
-                            user[:username] = line[0]
-                            user[:password] = line[1]
-                            puts "You are logged in"
-                        end
-                    end
-                end
+            username, password = get_login_details()
+            line = find_user?(username)
+            if line[1] == password
+                user[:username] = line[0]
+                user[:password] = line[1]
+                puts "You are logged in"
             end
-            if successful_login == false
+            if user == {}
                 puts "Incorrect Information, try again"
             end
         end
     end
-    p user
 
     puts "what would you like to do?"
     puts "options: quit"
